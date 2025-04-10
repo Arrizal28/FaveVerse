@@ -14,6 +14,26 @@ class StoryDetailProvider extends ChangeNotifier {
 
   StoryDetailResultState get resultState => _resultState;
 
+  // Future<void> fetchStoryDetail(String id) async {
+  //   try {
+  //     _resultState = StoryDetailLoadingState();
+  //     notifyListeners();
+  //
+  //     final result = await _apiServices.getStoryDetail(id);
+  //
+  //     if (result.error) {
+  //       _resultState = StoryDetailErrorState(result.message);
+  //       notifyListeners();
+  //     } else {
+  //       _resultState = StoryDetailLoadedState(result);
+  //       notifyListeners();
+  //     }
+  //   } on Exception catch (e) {
+  //     _resultState = StoryDetailErrorState(e.toString());
+  //     notifyListeners();
+  //   }
+  // }
+
   Future<void> fetchStoryDetail(String id) async {
     try {
       _resultState = StoryDetailLoadingState();
@@ -21,16 +41,19 @@ class StoryDetailProvider extends ChangeNotifier {
 
       final result = await _apiServices.getStoryDetail(id);
 
+      print("Response Story Detail: $result");
+      print("Is error: ${result.error}, message: ${result.message}");
+
       if (result.error) {
         _resultState = StoryDetailErrorState(result.message);
-        notifyListeners();
       } else {
         _resultState = StoryDetailLoadedState(result);
-        notifyListeners();
       }
     } on Exception catch (e) {
+      print("Error fetchStoryDetail: $e");
       _resultState = StoryDetailErrorState(e.toString());
-      notifyListeners();
     }
+    notifyListeners();
   }
+
 }

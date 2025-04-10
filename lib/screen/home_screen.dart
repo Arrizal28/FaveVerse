@@ -5,10 +5,12 @@ import 'package:provider/provider.dart';
 
 import '../static/story_list_result_state.dart';
 import '../style/colors/fv_colors.dart';
+import '../widget/header_with_story_button.dart';
 
 class HomeScreen extends StatefulWidget {
   final Function(String) onTapped;
-  const HomeScreen({super.key, required this.onTapped});
+  final VoidCallback onAddStory;
+  const HomeScreen({super.key, required this.onTapped, required this.onAddStory});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -38,6 +40,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: ListView(
         children: [
+          HeaderWithNewStoryButton(onPressed: widget.onAddStory),
           const SizedBox(height: 20),
           Padding(
             padding: const EdgeInsets.only(left: 20),

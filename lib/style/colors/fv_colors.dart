@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 enum FvColors {
-  blue("Blue", Color(0xFF5669FF));
+  blueyoung("Blueyoung", Color(0xFF5669FF)),
+  blue("Blue", Color(0xFF4A43EC));
 
   const FvColors(this.name, this.color);
 

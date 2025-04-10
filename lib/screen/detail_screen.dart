@@ -109,7 +109,9 @@ class _DetailScreenState extends State<DetailScreen> {
                     ),
                   ],
                 ),
-            _ => const SizedBox(),
+            StoryDetailLoadingState() => const Center(child: CircularProgressIndicator()),
+            StoryDetailErrorState(error: var msg) => Center(child: Text("Error: $msg")),
+            _ => const Center(child: Text("Unknown state")),
           };
         },
       ),
