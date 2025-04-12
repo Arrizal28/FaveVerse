@@ -1,8 +1,13 @@
+import 'package:faveverse/style/colors/fv_colors.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../common.dart';
 import '../data/model/user.dart';
 import '../provider/auth_provider.dart';
+import '../widget/auth_button.dart';
+import '../widget/custom_form_text_field.dart';
 
 class RegisterScreen extends StatefulWidget {
   final Function() onRegister;
@@ -32,10 +37,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
-  Future<void> _handleRegister() async {
+  Future<void> _handleRegister(AuthProvider authProvider) async {
     if (formKey.currentState!.validate()) {
       final scaffoldMessenger = ScaffoldMessenger.of(context);
-      final authProvider = context.read<AuthProvider>();
 
       final user = User(
         name: nameController.text.trim(),
@@ -46,85 +50,137 @@ class _RegisterScreenState extends State<RegisterScreen> {
       try {
         final result = await authProvider.register(user);
         if (result) {
+          scaffoldMessenger.showSnackBar(
+            SnackBar(
+              content: Text(AppLocalizations.of(context)!.registerSuccessMessage),
+            ),
+          );
+          await Future.delayed(const Duration(seconds: 2));
           widget.onRegister();
         } else {
           scaffoldMessenger.showSnackBar(
-            const SnackBar(content: Text("Register gagal.")),
+             SnackBar(content: Text(AppLocalizations.of(context)!.registerFailedPrefix)),
           );
         }
       } catch (e) {
         scaffoldMessenger.showSnackBar(
-          SnackBar(content: Text("Terjadi kesalahan: ${e.toString()}")),
+          SnackBar(content: Text(AppLocalizations.of(context)!.registerFailedPrefix))
         );
       }
     }
   }
 
+  bool _obscureText = true;
+
+  void _toggleVisibility() {
+    setState(() {
+      _obscureText = !_obscureText;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    final isLoading = context.watch<AuthProvider>().isLoadingRegister;
-
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Register Screen"),
-      ),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 300),
-          child: Form(
-            key: formKey,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                TextFormField(
-                  controller: nameController,
-                  decoration: const InputDecoration(hintText: "Name"),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Nama tidak boleh kosong.';
-                    }
-                    return null;
-                  },
+      appBar: AppBar(),
+      body: Padding(
+        padding: const EdgeInsets.only(left: 24.0, right: 24.0, bottom: 24.0),
+        child: Form(
+          key: formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 16),
+              Text(
+                AppLocalizations.of(context)!.registerTitle,
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w500,
                 ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(hintText: "Email"),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Email tidak boleh kosong.';
-                    }
-                    return null;
-                  },
+              ),
+              const SizedBox(height: 16),
+              CustomTextFormField(
+                controller: nameController,
+                hintText: AppLocalizations.of(context)!.nameHint,
+                prefixIcon: const Icon(Icons.person_outline),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return AppLocalizations.of(context)!.nameEmptyError;
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 8),
+              CustomTextFormField(
+                controller: emailController,
+                hintText: AppLocalizations.of(context)!.emailHint,
+                prefixIcon: const Icon(Icons.email_outlined),
+                keyboardType: TextInputType.emailAddress,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return AppLocalizations.of(context)!.emailEmptyError;
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 8),
+              CustomTextFormField(
+                controller: passwordController,
+                hintText: AppLocalizations.of(context)!.passwordHint,
+                obscureText: _obscureText,
+                prefixIcon: const Icon(Icons.lock_outline),
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscureText
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined,
+                  ),
+                  onPressed: _toggleVisibility,
                 ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: passwordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(hintText: "Password"),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Password tidak boleh kosong.';
-                    }
-                    return null;
-                  },
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return AppLocalizations.of(context)!.passwordEmptyError;
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              Consumer<AuthProvider>(
+                builder: (context, authProvider, child) {
+                  return authProvider.isLoadingRegister
+                      ? Center(
+                        child: CircularProgressIndicator(
+                          color: FvColors.blueyoung.color,
+                        ),
+                      )
+                      : AuthButton(
+                        onPressed: () => _handleRegister(authProvider),
+                        text: AppLocalizations.of(context)!.signInButton,
+                      );
+                },
+              ),
+              Spacer(),
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: RichText(
+                    text: TextSpan(
+                      text: AppLocalizations.of(context)!.haveAccountText,
+                      style: TextStyle(color: Colors.black),
+                      children: [
+                        TextSpan(
+                          text: AppLocalizations.of(context)!.signInLink,
+                          style: TextStyle(color: FvColors.blue.color),
+                          recognizer:
+                              TapGestureRecognizer()
+                                ..onTap = () {
+                                  widget.onLogin();
+                                },
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-                const SizedBox(height: 16),
-                isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : ElevatedButton(
-                  onPressed: _handleRegister,
-                  child: const Text("REGISTER"),
-                ),
-                const SizedBox(height: 8),
-                OutlinedButton(
-                  onPressed: widget.onLogin,
-                  child: const Text("LOGIN"),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

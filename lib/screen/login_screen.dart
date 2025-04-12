@@ -3,9 +3,11 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../common.dart';
 import '../data/model/user.dart';
 import '../provider/auth_provider.dart';
 import '../widget/auth_button.dart';
+import '../widget/custom_form_text_field.dart';
 
 class LoginScreen extends StatefulWidget {
   final Function() onLogin;
@@ -25,6 +27,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final formKey = GlobalKey<FormState>();
+  bool _obscureText = true;
 
   @override
   void dispose() {
@@ -33,10 +36,9 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  Future<void> _handleLogin() async {
+  Future<void> _handleLogin(AuthProvider authProvider) async {
     if (formKey.currentState!.validate()) {
       final scaffoldMessenger = ScaffoldMessenger.of(context);
-      final authProvider = context.read<AuthProvider>();
 
       final user = User(
         email: emailController.text.trim(),
@@ -46,21 +48,23 @@ class _LoginScreenState extends State<LoginScreen> {
       try {
         final result = await authProvider.login(user);
         if (result) {
+          scaffoldMessenger.showSnackBar(
+             SnackBar(content: Text(AppLocalizations.of(context)!.loginSuccessMessage)),
+          );
+          await Future.delayed(const Duration(seconds: 2));
           widget.onLogin();
         } else {
           scaffoldMessenger.showSnackBar(
-            const SnackBar(content: Text("Incorrect email or password.")),
+             SnackBar(content: Text(AppLocalizations.of(context)!.incorrectCredentialsMessage)),
           );
         }
       } catch (e) {
         scaffoldMessenger.showSnackBar(
-          SnackBar(content: Text('Login failed: ${e.toString()}')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.loginFailedPrefix)),
         );
       }
     }
   }
-
-  bool _obscureText = true;
 
   void _toggleVisibility() {
     setState(() {
@@ -70,8 +74,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isLoading = context.watch<AuthProvider>().isLoadingLogin;
-
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -89,110 +91,71 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 Text(
-                  "Sign In",
+                  AppLocalizations.of(context)!.loginTitle,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.w500,
                   ),
                 ),
                 const SizedBox(height: 16),
-                TextFormField(
+                CustomTextFormField(
                   controller: emailController,
+                  hintText: AppLocalizations.of(context)!.emailHint,
+                  prefixIcon: const Icon(Icons.email_outlined),
                   keyboardType: TextInputType.emailAddress,
-                  cursorColor: Colors.grey,
-                  decoration: InputDecoration(
-                    hintText: "abc@email.com",
-                    prefixIcon: const Icon(Icons.email_outlined),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(
-                        color: Colors.grey,
-                      ), // Warna border normal
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(
-                        color: Colors.grey,
-                      ), // Warna border saat fokus
-                    ),
-                    errorBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(
-                        color: Colors.red,
-                      ), // Warna border saat error
-                    ),
-                    focusedErrorBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.red),
-                    ),
-                  ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Email cannot be empty.';
+                      return AppLocalizations.of(context)!.emailEmptyError;
                     }
                     return null;
                   },
                 ),
                 const SizedBox(height: 8),
-                TextFormField(
+                CustomTextFormField(
                   controller: passwordController,
+                  hintText: AppLocalizations.of(context)!.passwordHint,
                   obscureText: _obscureText,
-                  cursorColor: Colors.grey,
-                  decoration: InputDecoration(
-                    hintText: "Your Password",
-                    prefixIcon: const Icon(Icons.lock_outline),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscureText
-                            ? Icons.visibility_off_outlined
-                            : Icons.visibility_outlined,
-                      ),
-                      onPressed: _toggleVisibility,
+                  prefixIcon: const Icon(Icons.lock_outline),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscureText
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
                     ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey),
-                    ),
-                    errorBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(
-                        color: Colors.red,
-                      ), // Warna border saat error
-                    ),
-                    focusedErrorBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.red),
-                    ),
+                    onPressed: _toggleVisibility,
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Password cannot be empty.';
+                      return AppLocalizations.of(context)!.passwordEmptyError;
                     }
                     return null;
                   },
                 ),
                 const SizedBox(height: 16),
-                isLoading
-                    ? Center(
-                      child: CircularProgressIndicator(
-                        color: FvColors.blueyoung.color,
-                      ),
-                    )
-                    : AuthButton(onPressed: _handleLogin, text: "SIGN IN"),
+                Consumer<AuthProvider>(
+                  builder: (context, authProvider, child) {
+                    return authProvider.isLoadingLogin
+                        ? Center(
+                          child: CircularProgressIndicator(
+                            color: FvColors.blueyoung.color,
+                          ),
+                        )
+                        : AuthButton(
+                          onPressed: () => _handleLogin(authProvider),
+                          text: AppLocalizations.of(context)!.signInButton,
+                        );
+                  },
+                ),
                 Spacer(),
                 Center(
                   child: Padding(
                     padding: const EdgeInsets.only(bottom: 16),
                     child: RichText(
                       text: TextSpan(
-                        text: "Don't have an account? ",
+                        text: AppLocalizations.of(context)!.noAccountText,
                         style: TextStyle(color: Colors.black),
                         children: [
                           TextSpan(
-                            text: 'Sign up',
+                            text: AppLocalizations.of(context)!.signUpLink,
                             style: TextStyle(color: FvColors.blue.color),
                             recognizer:
                                 TapGestureRecognizer()

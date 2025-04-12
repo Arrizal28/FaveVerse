@@ -12,6 +12,11 @@ class MyRouterDelegate extends RouterDelegate
     with ChangeNotifier, PopNavigatorRouterDelegateMixin {
   final GlobalKey<NavigatorState> _navigatorKey;
   final AuthRepository authRepository;
+  String? selectedStory;
+  List<Page> historyStack = [];
+  bool? isLoggedIn;
+  bool isRegister = false;
+  bool isAddingStory = false;
 
   MyRouterDelegate(this.authRepository) : _navigatorKey = GlobalKey<NavigatorState>() {
     _init();
@@ -24,12 +29,6 @@ class MyRouterDelegate extends RouterDelegate
 
   @override
   GlobalKey<NavigatorState> get navigatorKey => _navigatorKey;
-
-  String? selectedStory;
-  List<Page> historyStack = [];
-  bool? isLoggedIn;
-  bool isRegister = false;
-  bool isAddingStory = false;
 
 
   @override
@@ -113,6 +112,10 @@ class MyRouterDelegate extends RouterDelegate
         },
         onAddStory: () {
           isAddingStory = true;
+          notifyListeners();
+        },
+        onLogOut: () {
+          isLoggedIn = false;
           notifyListeners();
         },
       ),

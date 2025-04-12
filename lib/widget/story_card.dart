@@ -60,6 +60,8 @@ class StoryCard extends StatelessWidget {
                Text(
                 story.description,
                 style: Theme.of(context).textTheme.bodyMedium,
+                 maxLines: 4,
+                 overflow: TextOverflow.ellipsis,
               ),
             ],
           ),

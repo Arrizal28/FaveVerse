@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
+import '../common.dart';
 import '../provider/story_detail_provider.dart';
 import '../static/story_detail_result_state.dart';
 
@@ -39,8 +40,8 @@ class _DetailScreenState extends State<DetailScreen> {
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: const Text(
-          'Story Detail',
+        title:  Text(
+          AppLocalizations.of(context)!.detailScreenTitle,
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
@@ -51,69 +52,71 @@ class _DetailScreenState extends State<DetailScreen> {
           statusBarIconBrightness: Brightness.light, // white icons
         ),
       ),
-      body: Consumer<StoryDetailProvider>(
-        builder: (context, value, child) {
-          return switch (value.resultState) {
-            StoryDetailLoadedState(data: var Story) =>
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Stack(
-                      children: [
-                        SizedBox(
-                          height: 300,
-                          width: double.infinity,
-                          child: Image.network(
-                            Story.story.photoUrl,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                        // Gradient hitam dari atas ke transparan
-                        Container(
-                          height: 300,
-                          width: double.infinity,
-                          decoration: const BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                Colors.black54, // atasan agak gelap
-                                Colors.transparent,
-                              ],
+      body: SingleChildScrollView(
+        child: Consumer<StoryDetailProvider>(
+          builder: (context, value, child) {
+            return switch (value.resultState) {
+              StoryDetailLoadedState(data: var Story) =>
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Stack(
+                        children: [
+                          SizedBox(
+                            height: 300,
+                            width: double.infinity,
+                            child: Image.network(
+                              Story.story.photoUrl,
+                              fit: BoxFit.cover,
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Text(
-                        Story.story.name,
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
+                          // Gradient hitam dari atas ke transparan
+                          Container(
+                            height: 300,
+                            width: double.infinity,
+                            decoration: const BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.black54, // atasan agak gelap
+                                  Colors.transparent,
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Text(
+                          Story.story.name,
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Text(
-                        Story.story.description,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          color: Colors.black87,
+                      const SizedBox(height: 8),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Text(
+                          Story.story.description,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: Colors.black87,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-            StoryDetailLoadingState() => const Center(child: CircularProgressIndicator()),
-            StoryDetailErrorState(error: var msg) => Center(child: Text("Error: $msg")),
-            _ => const Center(child: Text("Unknown state")),
-          };
-        },
+                    ],
+                  ),
+              StoryDetailLoadingState() => const Center(child: CircularProgressIndicator()),
+              StoryDetailErrorState(error: var msg) => Center(child: Text(AppLocalizations.of(context)!.errorSign)),
+              _ =>  Center(child: Text(AppLocalizations.of(context)!.errorSign)),
+            };
+          },
+        ),
       ),
     );
   }

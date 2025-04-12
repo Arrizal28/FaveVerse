@@ -5,8 +5,10 @@ import 'package:faveverse/provider/story_list_provider.dart';
 import 'package:faveverse/routes/router_delegate.dart';
 import 'package:faveverse/style/theme/fv_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
+import 'common.dart';
 import 'data/api/api_services.dart';
 import 'data/repository/auth_repository.dart';
 
@@ -20,12 +22,22 @@ void main() {
           update: (context, apiServices, previous) =>
               AuthRepository(apiServices: apiServices),
         ),
+        ProxyProvider<ApiServices, AuthRepository>(
+          update: (context, apiServices, previous) =>
+              AuthRepository(apiServices: apiServices),
+        ),
+        ChangeNotifierProxyProvider<AuthRepository, AuthProvider>(
+          create: (context) => AuthProvider(context.read<AuthRepository>()),
+          update: (context, authRepository, previous) =>
+          previous ?? AuthProvider(authRepository),
+        ),
         ChangeNotifierProvider(
           create: (context) => StoryListProvider(context.read<ApiServices>()),
         ),
         ChangeNotifierProvider(
           create: (context) => StoryDetailProvider(context.read<ApiServices>()),
         ),
+
         ChangeNotifierProvider(
           create: (context) => AddStoryProvider(),
         ),
@@ -62,6 +74,8 @@ class _MyAppState extends State<MyApp> {
         theme: FvTheme.lightTheme,
         darkTheme: FvTheme.darkTheme,
         themeMode: ThemeMode.system,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Router(
           routerDelegate: myRouterDelegate,
           backButtonDispatcher: RootBackButtonDispatcher(),
