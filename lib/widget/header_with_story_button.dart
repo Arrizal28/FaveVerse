@@ -20,7 +20,7 @@ class HeaderWithNewStoryButton extends StatelessWidget {
           bottomRight: Radius.circular(40),
         ),
       ),
-      child: Center( // ⬅️ Tombol di tengah
+      child: Center(
         child: GestureDetector(
           onTap: onPressed,
           child: DottedBorder(

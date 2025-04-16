@@ -15,16 +15,13 @@ class StoryCard extends StatelessWidget {
       onTap: onTapped,
       child: Card(
         elevation: 4,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         margin: const EdgeInsets.all(16),
         child: Padding(
-          padding: const EdgeInsets.all(12), // Isi card diberi padding
+          padding: const EdgeInsets.all(12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Gambar dengan jarak dari tepi card dan rounded semua sisi
               Container(
                 margin: const EdgeInsets.only(bottom: 16),
                 decoration: BoxDecoration(
@@ -48,20 +45,19 @@ class StoryCard extends StatelessWidget {
                 ),
               ),
 
-              // Nama dan deskripsi user
               Text(
                 story.name,
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: FvColors.blue.color
-                )
+                  color: FvColors.blue.color,
+                ),
               ),
               const SizedBox(height: 4),
-               Text(
+              Text(
                 story.description,
                 style: Theme.of(context).textTheme.bodyMedium,
-                 maxLines: 4,
-                 overflow: TextOverflow.ellipsis,
+                maxLines: 4,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),

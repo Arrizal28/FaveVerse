@@ -28,9 +28,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final passwordController = TextEditingController();
   final nameController = TextEditingController();
   final formKey = GlobalKey<FormState>();
+  bool isButtonEnabled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    emailController.addListener(_updateButtonState);
+    passwordController.addListener(_updateButtonState);
+    nameController.addListener(_updateButtonState);
+  }
 
   @override
   void dispose() {
+    emailController.removeListener(_updateButtonState);
+    passwordController.removeListener(_updateButtonState);
+    nameController.removeListener(_updateButtonState);
     emailController.dispose();
     passwordController.dispose();
     nameController.dispose();
@@ -52,19 +64,32 @@ class _RegisterScreenState extends State<RegisterScreen> {
         if (result) {
           scaffoldMessenger.showSnackBar(
             SnackBar(
-              content: Text(AppLocalizations.of(context)!.registerSuccessMessage),
+              content: Text(
+                AppLocalizations.of(context)!.registerSuccessMessage,
+              ),
             ),
           );
           await Future.delayed(const Duration(seconds: 2));
           widget.onRegister();
+          emailController.clear();
+          passwordController.clear();
+          nameController.clear();
+
+          setState(() {
+            isButtonEnabled = false;
+          });
         } else {
           scaffoldMessenger.showSnackBar(
-             SnackBar(content: Text(AppLocalizations.of(context)!.registerFailedPrefix)),
+            SnackBar(
+              content: Text(AppLocalizations.of(context)!.registerFailedPrefix),
+            ),
           );
         }
       } catch (e) {
         scaffoldMessenger.showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.registerFailedPrefix))
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.errorWithMessage(e.toString())),
+          ),
         );
       }
     }
@@ -75,6 +100,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
   void _toggleVisibility() {
     setState(() {
       _obscureText = !_obscureText;
+    });
+  }
+
+  void _updateButtonState() {
+    final isEmailFilled = emailController.text.trim().isNotEmpty;
+    final isPasswordValid = passwordController.text.length >= 8;
+
+    setState(() {
+      isButtonEnabled = isEmailFilled && isPasswordValid;
     });
   }
 
@@ -152,8 +186,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                       )
                       : AuthButton(
-                        onPressed: () => _handleRegister(authProvider),
-                        text: AppLocalizations.of(context)!.signInButton,
+                        onPressed:
+                            isButtonEnabled
+                                ? () => _handleRegister(authProvider)
+                                : null,
+                        text: AppLocalizations.of(context)!.signUpButton,
                       );
                 },
               ),
@@ -172,6 +209,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           recognizer:
                               TapGestureRecognizer()
                                 ..onTap = () {
+                                  emailController.clear();
+                                  passwordController.clear();
+                                  nameController.clear();
+
+                                  setState(() {
+                                    isButtonEnabled = false;
+                                  });
                                   widget.onLogin();
                                 },
                         ),

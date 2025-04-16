@@ -14,4 +14,9 @@ class AddStoryProvider extends ChangeNotifier {
     imagePath = value;
     notifyListeners();
   }
+
+  void clearImage() {
+    imagePath = null;
+    notifyListeners();
+  }
 }

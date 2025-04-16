@@ -24,5 +24,23 @@
   "logoutFailedPrefix": "Logout Failed",
   "homeScreenTitle": "Fresh Stories",
   "errorSign": "Oops! Something went wrong.",
-  "detailScreenTitle": "Story Detail"
+  "detailScreenTitle": "Story Detail",
+  "createStoryTitle": "Create a Story",
+  "noImage": "No image selected",
+  "gallery": "Gallery",
+  "camera": "Camera",
+  "descriptionLabel": "Description",
+  "descriptionHint": "Write your story here…",
+  "upload": "Upload",
+  "uploadSuccess": "Upload successful",
+  "errorWithMessage": "Error: {message}",
+  "@errorWithMessage": {
+    "description": "Error message with dynamic content",
+    "placeholders": {
+      "message": {
+        "type": "String",
+        "example": "Network connection failed"
+      }
+    }
+  }
 }

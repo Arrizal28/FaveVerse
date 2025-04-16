@@ -28,9 +28,19 @@ class _LoginScreenState extends State<LoginScreen> {
   final passwordController = TextEditingController();
   final formKey = GlobalKey<FormState>();
   bool _obscureText = true;
+  bool isButtonEnabled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    emailController.addListener(_updateButtonState);
+    passwordController.addListener(_updateButtonState);
+  }
 
   @override
   void dispose() {
+    emailController.removeListener(_updateButtonState);
+    passwordController.removeListener(_updateButtonState);
     emailController.dispose();
     passwordController.dispose();
     super.dispose();
@@ -49,21 +59,38 @@ class _LoginScreenState extends State<LoginScreen> {
         final result = await authProvider.login(user);
         if (result) {
           scaffoldMessenger.showSnackBar(
-             SnackBar(content: Text(AppLocalizations.of(context)!.loginSuccessMessage)),
+            SnackBar(
+              content: Text(AppLocalizations.of(context)!.loginSuccessMessage),
+            ),
           );
           await Future.delayed(const Duration(seconds: 2));
           widget.onLogin();
         } else {
           scaffoldMessenger.showSnackBar(
-             SnackBar(content: Text(AppLocalizations.of(context)!.incorrectCredentialsMessage)),
+            SnackBar(
+              content: Text(
+                AppLocalizations.of(context)!.incorrectCredentialsMessage,
+              ),
+            ),
           );
         }
       } catch (e) {
         scaffoldMessenger.showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.loginFailedPrefix)),
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.loginFailedPrefix),
+          ),
         );
       }
     }
+  }
+
+  void _updateButtonState() {
+    final isEmailFilled = emailController.text.trim().isNotEmpty;
+    final isPasswordValid = passwordController.text.length >= 8;
+
+    setState(() {
+      isButtonEnabled = isEmailFilled && isPasswordValid;
+    });
   }
 
   void _toggleVisibility() {
@@ -140,7 +167,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         )
                         : AuthButton(
-                          onPressed: () => _handleLogin(authProvider),
+                          onPressed:
+                              isButtonEnabled
+                                  ? () => _handleLogin(authProvider)
+                                  : null,
                           text: AppLocalizations.of(context)!.signInButton,
                         );
                   },
@@ -160,6 +190,12 @@ class _LoginScreenState extends State<LoginScreen> {
                             recognizer:
                                 TapGestureRecognizer()
                                   ..onTap = () {
+                                    emailController.clear();
+                                    passwordController.clear();
+
+                                    setState(() {
+                                      isButtonEnabled = false;
+                                    });
                                     widget.onRegister();
                                   },
                           ),

@@ -18,7 +18,8 @@ class MyRouterDelegate extends RouterDelegate
   bool isRegister = false;
   bool isAddingStory = false;
 
-  MyRouterDelegate(this.authRepository) : _navigatorKey = GlobalKey<NavigatorState>() {
+  MyRouterDelegate(this.authRepository)
+    : _navigatorKey = GlobalKey<NavigatorState>() {
     _init();
   }
 
@@ -29,7 +30,6 @@ class MyRouterDelegate extends RouterDelegate
 
   @override
   GlobalKey<NavigatorState> get navigatorKey => _navigatorKey;
-
 
   @override
   Widget build(BuildContext context) {
@@ -63,16 +63,13 @@ class MyRouterDelegate extends RouterDelegate
 
   @override
   Future<void> setNewRoutePath(configuration) {
-    // TODO: implement setNewRoutePath
     throw UnimplementedError();
   }
 
   List<Page> get _splashStack => const [
-    MaterialPage(
-      key: ValueKey("SplashPage"),
-      child: SplashScreen(),
-    ),
+    MaterialPage(key: ValueKey("SplashPage"), child: SplashScreen()),
   ];
+
   List<Page> get _loggedOutStack => [
     MaterialPage(
       key: const ValueKey("LoginPage"),
@@ -102,6 +99,7 @@ class MyRouterDelegate extends RouterDelegate
         ),
       ),
   ];
+
   List<Page> get _loggedInStack => [
     MaterialPage(
       key: const ValueKey("StoryListPage"),
@@ -123,9 +121,7 @@ class MyRouterDelegate extends RouterDelegate
     if (selectedStory != null)
       MaterialPage(
         key: ValueKey(selectedStory),
-        child: DetailScreen(
-          storyId: selectedStory!,
-        ),
+        child: DetailScreen(storyId: selectedStory!),
       ),
     if (isAddingStory)
       MaterialPage(

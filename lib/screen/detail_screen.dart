@@ -8,10 +8,8 @@ import '../static/story_detail_result_state.dart';
 
 class DetailScreen extends StatefulWidget {
   final String storyId;
-  const DetailScreen({
-    super.key,
-    required this.storyId,
-  });
+
+  const DetailScreen({super.key, required this.storyId});
 
   @override
   State<DetailScreen> createState() => _DetailScreenState();
@@ -22,9 +20,7 @@ class _DetailScreenState extends State<DetailScreen> {
   void initState() {
     super.initState();
     Future.microtask(() {
-      context
-          .read<StoryDetailProvider>()
-          .fetchStoryDetail(widget.storyId);
+      context.read<StoryDetailProvider>().fetchStoryDetail(widget.storyId);
     });
   }
 
@@ -40,80 +36,76 @@ class _DetailScreenState extends State<DetailScreen> {
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title:  Text(
+        title: Text(
           AppLocalizations.of(context)!.detailScreenTitle,
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         systemOverlayStyle: SystemUiOverlayStyle(
-          statusBarColor: Colors.transparent, // << transparan status bar
-          statusBarIconBrightness: Brightness.light, // white icons
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.light,
         ),
       ),
       body: SingleChildScrollView(
         child: Consumer<StoryDetailProvider>(
           builder: (context, value, child) {
             return switch (value.resultState) {
-              StoryDetailLoadedState(data: var Story) =>
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+              StoryDetailLoadedState(data: var story) => Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Stack(
                     children: [
-                      Stack(
-                        children: [
-                          SizedBox(
-                            height: 300,
-                            width: double.infinity,
-                            child: Image.network(
-                              Story.story.photoUrl,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                          // Gradient hitam dari atas ke transparan
-                          Container(
-                            height: 300,
-                            width: double.infinity,
-                            decoration: const BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [
-                                  Colors.black54, // atasan agak gelap
-                                  Colors.transparent,
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Text(
-                          Story.story.name,
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
+                      SizedBox(
+                        height: 300,
+                        width: double.infinity,
+                        child: Image.network(
+                          story.story.photoUrl,
+                          fit: BoxFit.cover,
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Text(
-                          Story.story.description,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            color: Colors.black87,
+                      Container(
+                        height: 300,
+                        width: double.infinity,
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [Colors.black54, Colors.transparent],
                           ),
                         ),
                       ),
                     ],
                   ),
-              StoryDetailLoadingState() => const Center(child: CircularProgressIndicator()),
-              StoryDetailErrorState(error: var msg) => Center(child: Text(AppLocalizations.of(context)!.errorSign)),
-              _ =>  Center(child: Text(AppLocalizations.of(context)!.errorSign)),
+                  const SizedBox(height: 16),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      story.story.name,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      story.story.description,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              StoryDetailLoadingState() => const Center(
+                child: CircularProgressIndicator(),
+              ),
+              StoryDetailErrorState(error: var msg) => Center(
+                child: Text(AppLocalizations.of(context)!.errorSign),
+              ),
+              _ => Center(child: Text(AppLocalizations.of(context)!.errorSign)),
             };
           },
         ),

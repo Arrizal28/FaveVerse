@@ -7,6 +7,7 @@ import '../common.dart';
 import '../provider/auth_provider.dart';
 import '../static/story_list_result_state.dart';
 import '../style/colors/fv_colors.dart';
+import '../widget/flag_icon_widget.dart';
 import '../widget/header_with_story_button.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -17,9 +18,15 @@ class HomeScreen extends StatefulWidget {
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
+
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+
+  void refreshStories() {
+    context.read<StoryListProvider>().fetchStoryList();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -60,6 +67,9 @@ class _HomeScreenState extends State<HomeScreen> {
             color: Colors.white
           ),
         ),
+        actions: [
+          const FlagIconWidget(),
+        ],
       ),
       floatingActionButton: Consumer<AuthProvider>(
         builder: (context, authProvider, child) {
@@ -108,7 +118,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       const SizedBox(height: 52),
                       Image.asset(
-                        "assets/images/error.jpg",
+                        "assets/images/error.png",
                         width: 198,
                         height: 198,
                       ),

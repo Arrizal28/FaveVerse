@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../style/colors/fv_colors.dart';
 
 class AuthButton extends StatelessWidget {
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final String text;
   const AuthButton({super.key, required this.onPressed, required this.text});
 
@@ -39,7 +39,7 @@ class AuthButton extends StatelessWidget {
             child: Container(
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: FvColors.blue.color,
+                color: onPressed != null ? FvColors.blue.color : Colors.grey,
               ),
               padding: EdgeInsets.all(4),
               child: Icon(
