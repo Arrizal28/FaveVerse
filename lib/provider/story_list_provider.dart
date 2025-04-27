@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../data/api/api_services.dart';
-import '../data/model/Story.dart';
+import '../data/model/story.dart';
 import '../static/story_list_result_state.dart';
 
 class StoryListProvider extends ChangeNotifier {

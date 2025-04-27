@@ -1,7 +1,7 @@
 import 'package:faveverse/style/colors/fv_colors.dart';
 import 'package:flutter/material.dart';
 
-import '../data/model/Story.dart';
+import '../data/model/story.dart';
 
 class StoryCard extends StatelessWidget {
   final Story story;

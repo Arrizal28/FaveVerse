@@ -1,4 +1,4 @@
-import '../data/model/Story.dart';
+import '../data/model/story.dart';
 
 sealed class StoryListResultState {}
 

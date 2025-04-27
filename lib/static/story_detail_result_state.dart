@@ -1,5 +1,4 @@
 
-import '../data/model/Story.dart';
 import '../data/model/story_detail_response.dart';
 
 sealed class StoryDetailResultState {}

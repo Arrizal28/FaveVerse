@@ -1,4 +1,4 @@
-import 'Story.dart';
+import 'story.dart';
 
 class StoryDetailResponse {
   final bool error;
