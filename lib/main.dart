@@ -4,6 +4,7 @@ import 'package:faveverse/provider/localizations_provider.dart';
 import 'package:faveverse/provider/story_detail_provider.dart';
 import 'package:faveverse/provider/story_list_provider.dart';
 import 'package:faveverse/provider/upload_provider.dart';
+import 'package:faveverse/routes/page_manager.dart';
 import 'package:faveverse/routes/router_delegate.dart';
 import 'package:faveverse/style/theme/fv_theme.dart';
 import 'package:flutter/material.dart';
@@ -48,6 +49,9 @@ void main() {
         ),
         ChangeNotifierProvider(
           create: (context) => LocalizationProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => PageManager(),
         ),
       ],
       child: MyApp(),

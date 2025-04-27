@@ -14,25 +14,41 @@ class HomeScreen extends StatefulWidget {
   final Function(String) onTapped;
   final VoidCallback onAddStory;
   final VoidCallback onLogOut;
-  const HomeScreen({super.key, required this.onTapped, required this.onAddStory, required this.onLogOut});
+
+  const HomeScreen({
+    super.key,
+    required this.onTapped,
+    required this.onAddStory,
+    required this.onLogOut,
+  });
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
-
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-
-  void refreshStories() {
-    context.read<StoryListProvider>().fetchStoryList();
-  }
+  final ScrollController scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
-    Future.microtask(() {
-      context.read<StoryListProvider>().fetchStoryList();
+    final storyProvider = context.read<StoryListProvider>();
+    scrollController.addListener(() {
+      if (scrollController.position.pixels >=
+          scrollController.position.maxScrollExtent) {
+        if (storyProvider.pageItems != null) {
+          storyProvider.fetchStoryList();
+        }
+      }
     });
+
+    Future.microtask(() async => storyProvider.fetchStoryList());
+  }
+
+  @override
+  void dispose() {
+    scrollController.dispose();
+    super.dispose();
   }
 
   Future<void> _handleLogout(BuildContext context) async {
@@ -45,12 +61,16 @@ class _HomeScreenState extends State<HomeScreen> {
         widget.onLogOut();
       } else {
         scaffoldMessenger.showSnackBar(
-           SnackBar(content: Text(AppLocalizations.of(context)!.logoutFailedPrefix)),
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.logoutFailedPrefix),
+          ),
         );
       }
     } catch (e) {
       scaffoldMessenger.showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.loginFailedPrefix)),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.loginFailedPrefix),
+        ),
       );
     }
   }
@@ -63,35 +83,39 @@ class _HomeScreenState extends State<HomeScreen> {
         centerTitle: true,
         title: Text(
           AppLocalizations.of(context)!.appTitle,
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-            color: Colors.white
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.headlineSmall?.copyWith(color: Colors.white),
         ),
-        actions: [
-          const FlagIconWidget(),
-        ],
+        actions: [const FlagIconWidget()],
       ),
       floatingActionButton: Consumer<AuthProvider>(
         builder: (context, authProvider, child) {
           return FloatingActionButton(
-            onPressed: authProvider.isLoadingLogout
-                ? null
-                : () => _handleLogout(context),
+            onPressed:
+                authProvider.isLoadingLogout
+                    ? null
+                    : () => _handleLogout(context),
             backgroundColor: FvColors.blue.color,
             tooltip: AppLocalizations.of(context)!.logoutTitle,
-            child: authProvider.isLoadingLogout
-                ? const CircularProgressIndicator(color: Colors.white)
-                : const Icon(Icons.logout, color: Colors.white),
+            child:
+                authProvider.isLoadingLogout
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : const Icon(Icons.logout, color: Colors.white),
           );
         },
       ),
       body: ListView(
+        controller: scrollController,
         children: [
           HeaderWithNewStoryButton(onPressed: widget.onAddStory),
           const SizedBox(height: 20),
           Padding(
             padding: const EdgeInsets.only(left: 20),
-            child: Text(AppLocalizations.of(context)!.homeScreenTitle, style: Theme.of(context).textTheme.headlineLarge,),
+            child: Text(
+              AppLocalizations.of(context)!.homeScreenTitle,
+              style: Theme.of(context).textTheme.headlineLarge,
+            ),
           ),
           Consumer<StoryListProvider>(
             builder: (context, value, child) {
@@ -99,20 +123,28 @@ class _HomeScreenState extends State<HomeScreen> {
                 StoryListLoadingState() => const Center(
                   child: CircularProgressIndicator(),
                 ),
-                StoryListLoadedState(data: var storyList) =>
-                  ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: storyList.length,
-                    itemBuilder: (context, index) {
-                      final story = storyList[index];
-
-                      return StoryCard(
-                        story: story,
-                        onTapped: () => widget.onTapped(story.id),
+                StoryListLoadedState(data: var storyList) => ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: storyList.length + (value.pageItems != null ? 1 : 0),
+                  itemBuilder: (context, index) {
+                    if (index == storyList.length && value.pageItems != null) {
+                      return const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(8),
+                          child: CircularProgressIndicator(),
+                        ),
                       );
-                    },
-                  ),
+                    }
+
+                    final story = storyList[index];
+
+                    return StoryCard(
+                      story: story,
+                      onTapped: () => widget.onTapped(story.id),
+                    );
+                  },
+                ),
                 StoryListErrorState() => Center(
                   child: Column(
                     children: [
@@ -123,7 +155,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         height: 198,
                       ),
                       const SizedBox(height: 6),
-                       Text(
+                      Text(
                         AppLocalizations.of(context)!.errorSign,
                         style: TextStyle(
                           fontSize: 16,

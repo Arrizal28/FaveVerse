@@ -1,3 +1,4 @@
+import 'package:faveverse/screen/maps_screen.dart';
 import 'package:flutter/material.dart';
 
 import '../data/repository/auth_repository.dart';
@@ -17,6 +18,7 @@ class MyRouterDelegate extends RouterDelegate
   bool? isLoggedIn;
   bool isRegister = false;
   bool isAddingStory = false;
+  bool isSelectingLocation = false;
 
   MyRouterDelegate(this.authRepository)
     : _navigatorKey = GlobalKey<NavigatorState>() {
@@ -55,6 +57,10 @@ class MyRouterDelegate extends RouterDelegate
         }
         if (page.key == const ValueKey("AddStoryPage")) {
           isAddingStory = false;
+          notifyListeners();
+        }
+        if (page.key == const ValueKey("MapPage")) {
+          isSelectingLocation = false;
           notifyListeners();
         }
       },
@@ -133,6 +139,24 @@ class MyRouterDelegate extends RouterDelegate
           },
           onCancel: () {
             isAddingStory = false;
+            notifyListeners();
+          },
+          onAddLocation: () {
+            isSelectingLocation = true;
+            notifyListeners();
+          },
+        ),
+      ),
+    if (isSelectingLocation)
+      MaterialPage(
+        key: const ValueKey("MapPage"),
+        child: MapsScreen(
+          onCancel: () {
+            isSelectingLocation = false;
+            notifyListeners();
+          },
+          onSend: () {
+            isSelectingLocation = false;
             notifyListeners();
           },
         ),
