@@ -10,6 +10,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../common.dart';
+import '../flavor_config.dart';
 import '../provider/story_list_provider.dart';
 import '../provider/upload_provider.dart';
 import '../routes/page_manager.dart';
@@ -18,12 +19,14 @@ class AddStoryScreen extends StatefulWidget {
   final VoidCallback onStoryAdded;
   final VoidCallback onCancel;
   final VoidCallback onAddLocation;
+  final PageManager pageManager;
 
   const AddStoryScreen({
     super.key,
     required this.onStoryAdded,
     required this.onCancel,
     required this.onAddLocation,
+    required this.pageManager,
   });
 
   @override
@@ -33,6 +36,8 @@ class AddStoryScreen extends StatefulWidget {
 class _AddStoryScreenState extends State<AddStoryScreen> {
   final TextEditingController _descController = TextEditingController();
   String? _selectedAddress;
+  double? _latitude;
+  double? _longitude;
 
   bool get isUploadEnabled {
     final hasImage = context.read<AddStoryProvider>().imagePath != null;
@@ -127,45 +132,121 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
             ),
             onChanged: (_) => setState(() {}),
           ),
-
           const SizedBox(height: 16),
+          if (!FlavorConfig.isPaid && !FlavorConfig.isFree) ...[
+            _selectedAddress == null
+                ? ElevatedButton.icon(
+              onPressed: () async {
+                widget.onAddLocation();
 
-          _selectedAddress == null
-              ? ElevatedButton.icon(
-                onPressed: () async {
-                  widget.onAddLocation();
-                  final address =
-                      await context.read<PageManager>().waitForResult();
+                final locationData =
+                await widget.pageManager.waitForResult();
 
+                if (locationData.containsKey('latitude') &&
+                    locationData.containsKey('longitude') &&
+                    locationData.containsKey('address')) {
                   setState(() {
-                    _selectedAddress = address;
+                    _latitude = locationData['latitude'];
+                    _longitude = locationData['longitude'];
+                    _selectedAddress = locationData['address'];
                   });
-                },
-                icon: const Icon(Icons.location_on),
-                label: const Text('Tambah Lokasi'),
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 48),
+                }
+              },
+              icon: const Icon(Icons.location_on),
+              label: Text(AppLocalizations.of(context)!.addLocationButton),
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 48),
+              ),
+            )
+                : Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.location_on, color: FvColors.blue.color),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      _selectedAddress!,
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          if (FlavorConfig.isPaid) ...[
+            _selectedAddress == null
+                ? ElevatedButton.icon(
+                  onPressed: () async {
+                    widget.onAddLocation();
+
+                    final locationData =
+                        await widget.pageManager.waitForResult();
+
+                    if (locationData.containsKey('latitude') &&
+                        locationData.containsKey('longitude') &&
+                        locationData.containsKey('address')) {
+                      setState(() {
+                        _latitude = locationData['latitude'];
+                        _longitude = locationData['longitude'];
+                        _selectedAddress = locationData['address'];
+                      });
+                    }
+                  },
+                  icon: const Icon(Icons.location_on),
+                  label: Text(AppLocalizations.of(context)!.addLocationButton),
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 48),
+                  ),
+                )
+                : Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.location_on, color: FvColors.blue.color),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          _selectedAddress!,
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              )
-              : Container(
+          ],
+          if (FlavorConfig.isFree)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey),
+                  color: Colors.amber.shade100,
                   borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.amber),
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.location_on, color: FvColors.blue.color),
+                    Icon(Icons.workspace_premium, color: Colors.amber.shade800),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        _selectedAddress!,
-                        style: const TextStyle(fontSize: 14),
+                        AppLocalizations.of(context)!.premiumUpgradeBanner,
+                        style: TextStyle(fontSize: 14),
                       ),
                     ),
                   ],
                 ),
               ),
+            ),
           const SizedBox(height: 60),
         ],
       ),
@@ -219,6 +300,8 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
         newBytes,
         fileName,
         description,
+        lat: _latitude,
+        lon: _longitude,
       );
 
       addStoryProvider.setImageFile(null);
@@ -227,18 +310,18 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
       widget.onStoryAdded();
 
       Future.microtask(() {
-        if (context.mounted) {
-          context.read<StoryListProvider>().fetchStoryList();
+        if (mounted) {
+          context.read<StoryListProvider>().refreshStories();
         }
       });
 
-      if (context.mounted) {
+      if (mounted) {
         scaffoldMessengerState.showSnackBar(
           SnackBar(content: Text(AppLocalizations.of(context)!.uploadSuccess)),
         );
       }
     } catch (e) {
-      if (context.mounted) {
+      if (mounted) {
         scaffoldMessengerState.showSnackBar(
           SnackBar(
             content: Text(
@@ -248,7 +331,7 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
         );
       }
     } finally {
-      if (context.mounted) {
+      if (mounted) {
         uploadProvider.setLoadingState(false);
       }
     }

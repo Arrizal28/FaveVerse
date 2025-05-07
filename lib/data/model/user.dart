@@ -1,48 +1,30 @@
-import 'dart:convert';
+import 'package:json_annotation/json_annotation.dart';
 
+part 'user.g.dart';
+
+@JsonSerializable()
 class User {
   String? name;
   String? email;
   String? password;
 
-  User({
-    this.name,
-    this.email,
-    this.password,
-  });
+  User({this.name, this.email, this.password});
+
+  factory User.fromJson(json) => _$UserFromJson(json);
+
+  Map<String, dynamic> toJson() => _$UserToJson(this);
 
   @override
   String toString() => 'User(name: $name, email: $email, password: $password)';
 
-  Map<String, dynamic> toMap() {
-    return {
-      'name': name,
-      'email': email,
-      'password': password,
-    };
-  }
-
-  factory User.fromMap(Map<String, dynamic> map) {
-    return User(
-      name: map['name'],
-      email: map['email'],
-      password: map['password'],
-    );
-  }
-
-  String toJson() => json.encode(toMap());
-
-  factory User.fromJson(String source) => User.fromMap(json.decode(source));
-
   @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-
-    return other is User &&
-        other.name == name &&
-        other.email == email &&
-        other.password == password;
-  }
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is User &&
+          runtimeType == other.runtimeType &&
+          name == other.name &&
+          email == other.email &&
+          password == other.password;
 
   @override
   int get hashCode => Object.hash(name, email, password);

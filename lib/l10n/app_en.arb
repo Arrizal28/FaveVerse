@@ -33,6 +33,13 @@
   "descriptionHint": "Write your story here…",
   "upload": "Upload",
   "uploadSuccess": "Upload successful",
+  "locationTitle": "Location: ",
+  "locationServicesNotAvailable": "Location services is not available",
+  "locationPermissionDenied": "Location permission is denied",
+  "premiumUpgradeBanner": "Upgrade to the Premium version to add locations to your stories",
+  "addLocationButton": "Add Location",
+  "selectLocationButton": "Select Location",
+  "viewFullMap": "View Full Map",
   "errorWithMessage": "Error: {message}",
   "@errorWithMessage": {
     "description": "Error message with dynamic content",

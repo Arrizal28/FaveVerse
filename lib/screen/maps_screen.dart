@@ -3,13 +3,16 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:geocoding/geocoding.dart' as geo;
 
+import '../common.dart';
+import '../routes/page_manager.dart';
 import '../widget/placemark_widget.dart';
 
 class MapsScreen extends StatefulWidget {
   final VoidCallback onCancel;
   final VoidCallback onSend;
+  final PageManager pageManager;
 
-  const MapsScreen({super.key, required this.onCancel, required this.onSend});
+  const MapsScreen({super.key, required this.onCancel, required this.onSend, required this.pageManager});
 
   @override
   State<MapsScreen> createState() => _MapsScreenState();
@@ -41,7 +44,7 @@ class _MapsScreenState extends State<MapsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Pilih Lokasi'),
+        title: Text(AppLocalizations.of(context)!.selectLocationButton),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: widget.onCancel,
@@ -123,7 +126,17 @@ class _MapsScreenState extends State<MapsScreen> {
                 left: 16,
                 child: PlacemarkWidget(
                   placemark: placemark!,
-                  onSend: widget.onSend,
+                  onSend: () {
+                    final locationData = {
+                      'latitude': markers.first.position.latitude,
+                      'longitude': markers.first.position.longitude,
+                      'address': '${placemark!.street}, ${placemark!.subLocality}, ${placemark!.locality}, ${placemark!.postalCode}, ${placemark!.country}'
+                    };
+
+                    widget.pageManager.returnData(locationData);
+
+                    widget.onSend();
+                  },
                 ),
               ),
           ],
@@ -171,7 +184,12 @@ class _MapsScreenState extends State<MapsScreen> {
     if (!serviceEnabled) {
       serviceEnabled = await location.requestService();
       if (!serviceEnabled) {
-        print("Location services is not available");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.locationServicesNotAvailable),
+            duration: Duration(seconds: 3),
+          ),
+        );
         return;
       }
     }
@@ -179,10 +197,13 @@ class _MapsScreenState extends State<MapsScreen> {
     permissionGranted = await location.hasPermission();
     if (permissionGranted == PermissionStatus.denied) {
       permissionGranted = await location.requestPermission();
-      if (permissionGranted != PermissionStatus.granted) {
-        print("Location permission is denied");
-        return;
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.locationPermissionDenied),
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
     }
 
     locationData = await location.getLocation();

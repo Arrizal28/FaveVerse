@@ -1,5 +1,8 @@
-import 'dart:convert';
+import 'package:json_annotation/json_annotation.dart';
 
+part 'add_story_response.g.dart';
+
+@JsonSerializable()
 class AddStoryResponse {
   final bool error;
   final String message;
@@ -10,13 +13,7 @@ class AddStoryResponse {
   });
 
 
-  factory AddStoryResponse.fromMap(Map<String, dynamic> map) {
-    return AddStoryResponse(
-      error: map['error'] ?? false,
-      message: map['message'] ?? '',
-    );
-  }
+  factory AddStoryResponse.fromJson(json) => _$AddStoryResponseFromJson(json);
 
-  factory AddStoryResponse.fromJson(String source) =>
-      AddStoryResponse.fromMap(json.decode(source));
+  Map<String, dynamic> toJson() => _$AddStoryResponseToJson(this);
 }

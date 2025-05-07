@@ -1,3 +1,4 @@
+import 'package:faveverse/routes/page_manager.dart';
 import 'package:faveverse/screen/maps_screen.dart';
 import 'package:flutter/material.dart';
 
@@ -8,6 +9,7 @@ import '../screen/home_screen.dart';
 import '../screen/login_screen.dart';
 import '../screen/register_screen.dart';
 import '../screen/splash_screen.dart';
+import '../routes/custom_page_route.dart';
 
 class MyRouterDelegate extends RouterDelegate
     with ChangeNotifier, PopNavigatorRouterDelegateMixin {
@@ -19,9 +21,11 @@ class MyRouterDelegate extends RouterDelegate
   bool isRegister = false;
   bool isAddingStory = false;
   bool isSelectingLocation = false;
+  final PageManager pageManager = PageManager();
+  bool isLoginToRegister = true;
 
   MyRouterDelegate(this.authRepository)
-    : _navigatorKey = GlobalKey<NavigatorState>() {
+      : _navigatorKey = GlobalKey<NavigatorState>() {
     _init();
   }
 
@@ -46,20 +50,19 @@ class MyRouterDelegate extends RouterDelegate
     return Navigator(
       pages: historyStack,
       key: navigatorKey,
-      onDidRemovePage: (page) {
-        if (page.key == ValueKey(selectedStory)) {
+      onDidRemovePage: (Page page) {
+        final key = page.key;
+
+        if (key is ValueKey && key.value == selectedStory) {
           selectedStory = null;
           notifyListeners();
-        }
-        if (page.key == const ValueKey("RegisterPage")) {
+        } else if (key == const ValueKey("RegisterPage")) {
           isRegister = false;
           notifyListeners();
-        }
-        if (page.key == const ValueKey("AddStoryPage")) {
+        } else if (key == const ValueKey("AddStoryPage")) {
           isAddingStory = false;
           notifyListeners();
-        }
-        if (page.key == const ValueKey("MapPage")) {
+        } else if (key == const ValueKey("MapPage")) {
           isSelectingLocation = false;
           notifyListeners();
         }
@@ -76,90 +79,146 @@ class MyRouterDelegate extends RouterDelegate
     MaterialPage(key: ValueKey("SplashPage"), child: SplashScreen()),
   ];
 
-  List<Page> get _loggedOutStack => [
-    MaterialPage(
-      key: const ValueKey("LoginPage"),
-      child: LoginScreen(
-        onLogin: () {
-          isLoggedIn = true;
-          notifyListeners();
-        },
-        onRegister: () {
-          isRegister = true;
-          notifyListeners();
-        },
-      ),
-    ),
-    if (isRegister == true)
-      MaterialPage(
-        key: const ValueKey("RegisterPage"),
-        child: RegisterScreen(
-          onRegister: () {
-            isRegister = false;
-            notifyListeners();
-          },
+  List<Page> get _loggedOutStack {
+    final List<Page> pages = [
+      CustomPageRoute(
+        key: const ValueKey("LoginPage"),
+        routeName: "login",
+        isRightToLeft: !isLoginToRegister,
+        child: LoginScreen(
           onLogin: () {
-            isRegister = false;
+            isLoggedIn = true;
             notifyListeners();
+          },
+          onRegister: () {
+            isLoginToRegister = true;
+            Future.microtask(() {
+              isRegister = true;
+              notifyListeners();
+            });
           },
         ),
       ),
-  ];
+    ];
 
-  List<Page> get _loggedInStack => [
-    MaterialPage(
-      key: const ValueKey("StoryListPage"),
-      child: HomeScreen(
-        onTapped: (String storyId) {
-          selectedStory = storyId;
-          notifyListeners();
-        },
-        onAddStory: () {
-          isAddingStory = true;
-          notifyListeners();
-        },
-        onLogOut: () {
-          isLoggedIn = false;
-          notifyListeners();
-        },
-      ),
-    ),
-    if (selectedStory != null)
+    if (isRegister) {
+      pages.add(
+        CustomPageRoute(
+          key: const ValueKey("RegisterPage"),
+          routeName: "register",
+          isRightToLeft: isLoginToRegister,
+          child: RegisterScreen(
+            onRegister: () {
+              Future.microtask(() {
+                isRegister = false;
+                notifyListeners();
+              });
+            },
+            onLogin: () {
+              isLoginToRegister = false;
+              Future.microtask(() {
+                isRegister = false;
+                notifyListeners();
+              });
+            },
+          ),
+        ),
+      );
+    }
+
+    return pages;
+  }
+
+  List<Page> get _loggedInStack {
+    final List<Page> pages = [
       MaterialPage(
-        key: ValueKey(selectedStory),
-        child: DetailScreen(storyId: selectedStory!),
-      ),
-    if (isAddingStory)
-      MaterialPage(
-        key: const ValueKey("AddStoryPage"),
-        child: AddStoryScreen(
-          onStoryAdded: () {
-            isAddingStory = false;
-            notifyListeners();
+        key: const ValueKey("StoryListPage"),
+        child: HomeScreen(
+          onTapped: (String storyId) {
+            Future.microtask(() {
+              selectedStory = storyId;
+              notifyListeners();
+            });
           },
-          onCancel: () {
-            isAddingStory = false;
-            notifyListeners();
+          onAddStory: () {
+            Future.microtask(() {
+              isAddingStory = true;
+              notifyListeners();
+            });
           },
-          onAddLocation: () {
-            isSelectingLocation = true;
-            notifyListeners();
+          onLogOut: () {
+            Future.microtask(() {
+              isLoggedIn = false;
+              notifyListeners();
+            });
           },
         ),
       ),
-    if (isSelectingLocation)
-      MaterialPage(
-        key: const ValueKey("MapPage"),
-        child: MapsScreen(
-          onCancel: () {
-            isSelectingLocation = false;
-            notifyListeners();
-          },
-          onSend: () {
-            isSelectingLocation = false;
-            notifyListeners();
-          },
+    ];
+
+    if (selectedStory != null) {
+      pages.add(
+        CustomPageRoute(
+          key: ValueKey(selectedStory),
+          routeName: "detail",
+          child: DetailScreen(storyId: selectedStory!),
         ),
-      ),
-  ];
+      );
+    }
+
+    if (isAddingStory) {
+      pages.add(
+        CustomPageRoute(
+          key: const ValueKey("AddStoryPage"),
+          routeName: "add_story",
+          child: AddStoryScreen(
+            onStoryAdded: () {
+              Future.microtask(() {
+                isAddingStory = false;
+                notifyListeners();
+              });
+            },
+            onCancel: () {
+              Future.microtask(() {
+                isAddingStory = false;
+                notifyListeners();
+              });
+            },
+            onAddLocation: () {
+              Future.microtask(() {
+                isSelectingLocation = true;
+                notifyListeners();
+              });
+            },
+            pageManager: pageManager,
+          ),
+        ),
+      );
+    }
+
+    if (isSelectingLocation) {
+      pages.add(
+        CustomPageRoute(
+          key: const ValueKey("MapPage"),
+          routeName: "map",
+          child: MapsScreen(
+            onCancel: () {
+              Future.microtask(() {
+                isSelectingLocation = false;
+                notifyListeners();
+              });
+            },
+            onSend: () {
+              Future.microtask(() {
+                isSelectingLocation = false;
+                notifyListeners();
+              });
+            },
+            pageManager: pageManager,
+          ),
+        ),
+      );
+    }
+    return pages;
+  }
 }

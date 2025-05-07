@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:geocoding/geocoding.dart' as geo;
 
 import '../common.dart';
 import '../provider/story_detail_provider.dart';
 import '../static/story_detail_result_state.dart';
+import '../widget/placemark_widget.dart';
 
 class DetailScreen extends StatefulWidget {
   final String storyId;
@@ -16,6 +19,10 @@ class DetailScreen extends StatefulWidget {
 }
 
 class _DetailScreenState extends State<DetailScreen> {
+  late GoogleMapController mapController;
+  late final Set<Marker> markers = {};
+  geo.Placemark? placemark;
+
   @override
   void initState() {
     super.initState();
@@ -32,10 +39,6 @@ class _DetailScreenState extends State<DetailScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
         title: Text(
           AppLocalizations.of(context)!.detailScreenTitle,
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
@@ -97,12 +100,67 @@ class _DetailScreenState extends State<DetailScreen> {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 20),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      AppLocalizations.of(context)!.locationTitle,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  if (story.story.lat != null && story.story.lon != null)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: SizedBox(
+                        height: 200,
+                        width: double.infinity,
+                        child: GoogleMap(
+                          initialCameraPosition: CameraPosition(
+                            target: LatLng(story.story.lat!, story.story.lon!),
+                            zoom: 15,
+                          ),
+                          markers: markers,
+                          onMapCreated: (controller) {
+                            final marker = Marker(
+                              markerId: const MarkerId("source"),
+                              position: LatLng(
+                                story.story.lat!,
+                                story.story.lon!,
+                              ),
+                            );
+                            setState(() {
+                              mapController = controller;
+                              markers.add(marker);
+                            });
+                          },
+                          onLongPress: (LatLng latLng) {
+                            onLongPressGoogleMap(latLng);
+                          },
+                          zoomControlsEnabled: false,
+                          myLocationButtonEnabled: false,
+                          myLocationEnabled: false,
+                        ),
+                      ),
+                    ),
+                  const SizedBox(height: 16),
+                  if (placemark != null)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: PlacemarkWidget(
+                        placemark: placemark!,
+                        isButtonEnable: false,
+                      ),
+                    ),
                 ],
               ),
               StoryDetailLoadingState() => const Center(
                 child: CircularProgressIndicator(),
               ),
-              StoryDetailErrorState(error: var msg) => Center(
+              StoryDetailErrorState(error: _) => Center(
                 child: Text(AppLocalizations.of(context)!.errorSign),
               ),
               _ => Center(child: Text(AppLocalizations.of(context)!.errorSign)),
@@ -111,5 +169,34 @@ class _DetailScreenState extends State<DetailScreen> {
         ),
       ),
     );
+  }
+
+  void onLongPressGoogleMap(LatLng latLng) async {
+    final info = await geo.placemarkFromCoordinates(
+      latLng.latitude,
+      latLng.longitude,
+    );
+    final place = info[0];
+    final street = place.street!;
+    final address =
+        '${place.subLocality}, ${place.locality}, ${place.postalCode}, ${place.country}';
+    setState(() {
+      placemark = place;
+    });
+    defineMarker(latLng, street, address);
+    mapController.animateCamera(CameraUpdate.newLatLng(latLng));
+  }
+
+  void defineMarker(LatLng latLng, String street, String address) {
+    final marker = Marker(
+      markerId: const MarkerId("source"),
+      position: latLng,
+      infoWindow: InfoWindow(title: street, snippet: address),
+    );
+
+    setState(() {
+      markers.clear();
+      markers.add(marker);
+    });
   }
 }

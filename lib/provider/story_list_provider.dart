@@ -13,6 +13,12 @@ class StoryListProvider extends ChangeNotifier {
 
   StoryListResultState get resultState => _resultState;
 
+  GlobalKey<AnimatedListState>? animatedListKey;
+
+  void setAnimatedListKey(GlobalKey<AnimatedListState> key) {
+    animatedListKey = key;
+  }
+
   int? pageItems = 1;
   int sizeItems = 10;
 
@@ -34,13 +40,12 @@ class StoryListProvider extends ChangeNotifier {
       } else {
         story.addAll(result.listStory);
         _resultState = StoryListLoadedState(story);
-        pageItems = pageItems! + 1;
-
         if (result.listStory.length < sizeItems) {
           pageItems = null;
         } else {
           pageItems = pageItems! + 1;
         }
+
 
         notifyListeners();
       }
@@ -48,5 +53,14 @@ class StoryListProvider extends ChangeNotifier {
       _resultState = StoryListErrorState(e.toString());
       notifyListeners();
     }
+  }
+
+  Future<void> refreshStories() async {
+    pageItems = 1;
+    story = [];
+    _resultState = StoryListNoneState();
+    notifyListeners();
+
+    await fetchStoryList();
   }
 }

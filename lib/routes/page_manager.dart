@@ -3,15 +3,14 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 class PageManager extends ChangeNotifier {
-  late Completer<String> _completer;
+  late Completer<Map<String, dynamic>> _completer;
 
-  Future<String> waitForResult() async {
-    _completer = Completer<String>();
+  Future<Map<String, dynamic>> waitForResult() async {
+    _completer = Completer<Map<String, dynamic>>();
     return _completer.future;
   }
 
-  void returnData(String value) {
+  void returnData(Map<String, dynamic> value) {
     _completer.complete(value);
   }
-
 }

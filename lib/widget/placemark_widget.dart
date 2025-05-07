@@ -1,13 +1,20 @@
+import 'package:faveverse/style/colors/fv_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart' as geo;
-import 'package:provider/provider.dart';
-import '../routes/page_manager.dart';
+
+import '../common.dart';
 
 class PlacemarkWidget extends StatelessWidget {
-  const PlacemarkWidget({super.key, required this.placemark, required this.onSend});
+  const PlacemarkWidget({
+    super.key,
+    required this.placemark,
+    this.onSend,
+    this.isButtonEnable = true,
+  });
 
-  final VoidCallback onSend;
+  final VoidCallback? onSend;
   final geo.Placemark placemark;
+  final bool isButtonEnable;
 
   @override
   Widget build(BuildContext context) {
@@ -15,8 +22,8 @@ class PlacemarkWidget extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       constraints: const BoxConstraints(maxWidth: 700),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: const BorderRadius.all(Radius.circular(50)),
+        color: FvColors.blue.color,
+        borderRadius: const BorderRadius.all(Radius.circular(26)),
         boxShadow: <BoxShadow>[
           BoxShadow(
             blurRadius: 20,
@@ -33,26 +40,25 @@ class PlacemarkWidget extends StatelessWidget {
               children: [
                 Text(
                   placemark.street!,
-                  style: Theme.of(context).textTheme.titleLarge,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: Colors.white
+                  ),
                 ),
                 Text(
                   '${placemark.subLocality}, ${placemark.locality}, ${placemark.postalCode}, ${placemark.country}',
-                  style: Theme.of(context).textTheme.labelLarge,
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: Colors.white
+                  ),
                 ),
-                const SizedBox(height: 10,),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    final address = '${placemark.street}, ${placemark.subLocality}, ${placemark.locality}, ${placemark.postalCode}, ${placemark.country}';
-
-                    onSend;
-
-                    context.read<PageManager>().returnData(address);
-
-                    Navigator.pop(context);
-                  },
-                  icon: const Icon(Icons.location_on),
-                  label: const Text('Pakai lokasi ini'),
-                ),
+                const SizedBox(height: 10),
+                if (isButtonEnable && onSend != null)
+                  ElevatedButton.icon(
+                    onPressed: onSend,
+                    icon: const Icon(Icons.location_on),
+                    label: Text(
+                      AppLocalizations.of(context)!.selectLocationButton,
+                    ),
+                  ),
               ],
             ),
           ),

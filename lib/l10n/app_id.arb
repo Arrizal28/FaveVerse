@@ -33,6 +33,13 @@
   "descriptionHint": "Tulis ceritamu di sini…",
   "upload": "Upload",
   "uploadSuccess": "Upload berhasil",
+  "locationTitle": "Lokasi: ",
+  "locationServicesNotAvailable": "Layanan lokasi tidak tersedia",
+  "locationPermissionDenied": "Izin lokasi ditolak",
+  "premiumUpgradeBanner": "Upgrade ke versi Premium untuk menambahkan lokasi pada cerita Anda",
+  "addLocationButton": "Tambah Lokasi",
+  "selectLocationButton": "Pilih Lokasi",
+  "viewFullMap": "Lihat Peta Penuh",
   "errorWithMessage": "Error: {message}",
   "@errorWithMessage": {
     "description": "Pesan error dengan konten dinamis",

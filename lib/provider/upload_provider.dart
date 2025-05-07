@@ -18,8 +18,10 @@ class UploadProvider extends ChangeNotifier {
   Future<void> upload(
     List<int> bytes,
     String fileName,
-    String description,
-  ) async {
+    String description, {
+    double? lat,
+    double? lon,
+  }) async {
     try {
       message = "";
       uploadResponse = null;
@@ -30,6 +32,8 @@ class UploadProvider extends ChangeNotifier {
         bytes,
         fileName,
         description,
+        lat: lat,
+        lon: lon,
       );
       message = uploadResponse?.message ?? "success";
       isUploading = false;
@@ -49,7 +53,6 @@ class UploadProvider extends ChangeNotifier {
     int length = imageLength;
     List<int> newByte = [];
     do {
-
       compressQuality -= 10;
       newByte = img.encodeJpg(image, quality: compressQuality);
       length = newByte.length;
