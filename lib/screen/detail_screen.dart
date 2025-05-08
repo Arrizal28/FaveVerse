@@ -22,6 +22,7 @@ class _DetailScreenState extends State<DetailScreen> {
   late GoogleMapController mapController;
   late final Set<Marker> markers = {};
   geo.Placemark? placemark;
+  bool isInitialPlacemarkFetched = false;
 
   @override
   void initState() {
@@ -52,110 +53,142 @@ class _DetailScreenState extends State<DetailScreen> {
         child: Consumer<StoryDetailProvider>(
           builder: (context, value, child) {
             return switch (value.resultState) {
-              StoryDetailLoadedState(data: var story) => Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Stack(
+              StoryDetailLoadedState(data: var story) => Builder(
+                builder: (context) {
+                  if (placemark == null) {
+                    getPlacemarkFromCoordinates(
+                      story.story.lat!,
+                      story.story.lon!,
+                    );
+                  }
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      SizedBox(
-                        height: 300,
-                        width: double.infinity,
-                        child: Image.network(
-                          story.story.photoUrl,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                      Container(
-                        height: 300,
-                        width: double.infinity,
-                        decoration: const BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [Colors.black54, Colors.transparent],
+                      Stack(
+                        children: [
+                          SizedBox(
+                            height: 300,
+                            width: double.infinity,
+                            child: Image.network(
+                              story.story.photoUrl,
+                              fit: BoxFit.cover,
+                            ),
                           ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Text(
-                      story.story.name,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Text(
-                      story.story.description,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        color: Colors.black87,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Text(
-                      AppLocalizations.of(context)!.locationTitle,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  if (story.story.lat != null && story.story.lon != null)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: SizedBox(
-                        height: 200,
-                        width: double.infinity,
-                        child: GoogleMap(
-                          initialCameraPosition: CameraPosition(
-                            target: LatLng(story.story.lat!, story.story.lon!),
-                            zoom: 15,
-                          ),
-                          markers: markers,
-                          onMapCreated: (controller) {
-                            final marker = Marker(
-                              markerId: const MarkerId("source"),
-                              position: LatLng(
-                                story.story.lat!,
-                                story.story.lon!,
+                          Container(
+                            height: 300,
+                            width: double.infinity,
+                            decoration: const BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [Colors.black54, Colors.transparent],
                               ),
-                            );
-                            setState(() {
-                              mapController = controller;
-                              markers.add(marker);
-                            });
-                          },
-                          onLongPress: (LatLng latLng) {
-                            onLongPressGoogleMap(latLng);
-                          },
-                          zoomControlsEnabled: false,
-                          myLocationButtonEnabled: false,
-                          myLocationEnabled: false,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Text(
+                          story.story.name,
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
-                    ),
-                  const SizedBox(height: 16),
-                  if (placemark != null)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: PlacemarkWidget(
-                        placemark: placemark!,
-                        isButtonEnable: false,
+                      const SizedBox(height: 8),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Text(
+                          story.story.description,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: Colors.black87,
+                          ),
+                        ),
                       ),
-                    ),
-                ],
+                      const SizedBox(height: 20),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Text(
+                          AppLocalizations.of(context)!.locationTitle,
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      if (story.story.lat != null && story.story.lon != null)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: SizedBox(
+                            height: 200,
+                            width: double.infinity,
+                            child: GoogleMap(
+                              initialCameraPosition: CameraPosition(
+                                target: LatLng(
+                                  story.story.lat!,
+                                  story.story.lon!,
+                                ),
+                                zoom: 15,
+                              ),
+                              markers: markers,
+                              onMapCreated: (controller) {
+                                final marker = Marker(
+                                  markerId: const MarkerId("source"),
+                                  position: LatLng(
+                                    story.story.lat!,
+                                    story.story.lon!,
+                                  ),
+                                  infoWindow: InfoWindow(
+                                    title: placemark?.street,
+                                    snippet:
+                                        '${placemark!.subLocality}, ${placemark!.locality}, ${placemark!.postalCode}, ${placemark!.country}',
+                                  ),
+                                );
+                                setState(() {
+                                  mapController = controller;
+                                  markers.clear();
+                                  markers.add(marker);
+                                });
+                              },
+                              onLongPress: (LatLng latLng) {
+                                onLongPressGoogleMap(latLng);
+                              },
+                              zoomControlsEnabled: false,
+                              myLocationButtonEnabled: false,
+                              myLocationEnabled: false,
+                            ),
+                          ),
+                        ),
+                      const SizedBox(height: 16),
+                      if (placemark != null)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: PlacemarkWidget(
+                            placemark: placemark!,
+                            isButtonEnable: false,
+                          ),
+                        ),
+                      if (story.story.lat != null &&
+                          story.story.lon != null &&
+                          placemark == null)
+                        const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 16),
+                          child: Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(16.0),
+                              child: CircularProgressIndicator(),
+                            ),
+                          ),
+                        ),
+                    ],
+                  );
+                },
               ),
               StoryDetailLoadingState() => const Center(
                 child: CircularProgressIndicator(),
@@ -171,20 +204,53 @@ class _DetailScreenState extends State<DetailScreen> {
     );
   }
 
+  Future<void> getPlacemarkFromCoordinates(
+    double latitude,
+    double longitude,
+  ) async {
+    final info = await geo.placemarkFromCoordinates(latitude, longitude);
+    if (info.isNotEmpty) {
+      final place = info[0];
+      setState(() {
+        placemark = place;
+      });
+
+      if (markers.isNotEmpty) {
+        final currentMarker = markers.first;
+        final marker = Marker(
+          markerId: currentMarker.markerId,
+          position: currentMarker.position,
+          infoWindow: InfoWindow(
+            title: place.street ?? "Location",
+            snippet:
+                '${place.subLocality}, ${place.locality}, ${place.postalCode}, ${place.country}',
+          ),
+        );
+
+        setState(() {
+          markers.clear();
+          markers.add(marker);
+        });
+      }
+    }
+  }
+
   void onLongPressGoogleMap(LatLng latLng) async {
     final info = await geo.placemarkFromCoordinates(
       latLng.latitude,
       latLng.longitude,
     );
-    final place = info[0];
-    final street = place.street!;
-    final address =
-        '${place.subLocality}, ${place.locality}, ${place.postalCode}, ${place.country}';
-    setState(() {
-      placemark = place;
-    });
-    defineMarker(latLng, street, address);
-    mapController.animateCamera(CameraUpdate.newLatLng(latLng));
+    if (info.isNotEmpty) {
+      final place = info[0];
+      final street = place.street!;
+      final address =
+          '${place.subLocality}, ${place.locality}, ${place.postalCode}, ${place.country}';
+      setState(() {
+        placemark = place;
+      });
+      defineMarker(latLng, street, address);
+      mapController.animateCamera(CameraUpdate.newLatLng(latLng));
+    }
   }
 
   void defineMarker(LatLng latLng, String street, String address) {

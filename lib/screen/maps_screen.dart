@@ -197,13 +197,16 @@ class _MapsScreenState extends State<MapsScreen> {
     permissionGranted = await location.hasPermission();
     if (permissionGranted == PermissionStatus.denied) {
       permissionGranted = await location.requestPermission();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context)!.locationPermissionDenied),
-          duration: Duration(seconds: 3),
-        ),
-      );
-      return;
+
+      if (permissionGranted == PermissionStatus.denied) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.locationPermissionDenied),
+            duration: Duration(seconds: 3),
+          ),
+        );
+        return;
+      }
     }
 
     locationData = await location.getLocation();
